@@ -1,0 +1,13 @@
+{
+  "name": "raiden",
+  "version": "1.0.0",
+  "description": "Raiden WebSocket host/guest app",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch run index.ts"
+  },
+  "dependencies": {
+    "bun": "^1.0.0"
+  }
+}
