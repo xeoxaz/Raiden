@@ -75,7 +75,7 @@ const W = 56;
 const HR = "─".repeat(W);
 
 function cell(raw: string): string {
-  return raw + " ".repeat(Math.max(0, W - raw.length));
+  return raw + " ".repeat(Math.max(0, W - 2 - raw.length));
 }
 
 function border(s: string): string {
@@ -122,7 +122,7 @@ function showDashboard(
 
   out.push(border("┌" + HR + "┐"));
   out.push(border("│") + " " + cell(`${C.bold(C.cyan("⚡ Raiden " + VERSION))} — Guest`) + " " + border("│"));
-  out.push(border("│") + " " + cell(url.length > W ? url.slice(0, W) : url) + " " + border("│"));
+  out.push(border("│") + " " + cell(url.length > W - 2 ? url.slice(0, W - 2) : url) + " " + border("│"));
   out.push(border("│") + " " + cell(C.dim(`Elapsed: ${elapsed}s`)) + " " + border("│"));
 
   if (rttNs !== null) {
@@ -154,7 +154,7 @@ function showDashboard(
   }
 
   if (extra) {
-    out.push(border("│") + " " + cell(C.yellow(extra.slice(0, W))) + " " + border("│"));
+    out.push(border("│") + " " + cell(C.yellow(extra.slice(0, W - 2))) + " " + border("│"));
   }
 
   out.push(border("└" + HR + "┘"));
@@ -169,7 +169,7 @@ function showSummary(
 
   out.push(border("┌" + HR + "┐"));
   out.push(border("│") + " " + cell(`${C.bold(C.magenta("Session Summary"))}`) + " " + border("│"));
-  out.push(border("│") + " " + cell(url.length > W ? url.slice(0, W) : url) + " " + border("│"));
+  out.push(border("│") + " " + cell(url.length > W - 2 ? url.slice(0, W - 2) : url) + " " + border("│"));
   out.push(border("│") + " " + cell(C.yellow(reason)) + " " + border("│"));
   out.push(border("│") + " " + cell(C.dim(`Elapsed: ${elapsed}s`)) + " " + border("│"));
 
