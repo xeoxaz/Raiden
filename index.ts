@@ -29,12 +29,12 @@ function calcStats(samples: number[]): Stats {
 
 // ── Formatters ─────────────────────────────────────────────
 
-function formatNs(ns: number): string {
-  return Math.round(ns).toLocaleString("en-US").padStart(14);
-}
-
-function formatMs(ns: number): string {
-  return (ns / 1e6).toFixed(3).padStart(7);
+function formatTime(ns: number): string {
+  const abs = Math.abs(ns);
+  if (abs < 1_000) return `${Math.round(ns)} ns`;
+  if (abs < 1_000_000) return `${(ns / 1_000).toFixed(1)} µs`;
+  if (abs < 1_000_000_000) return `${(ns / 1e6).toFixed(3)} ms`;
+  return `${(ns / 1e9).toFixed(3)} s`;
 }
 
 function formatSize(bytes: number): string {
@@ -84,11 +84,10 @@ function border(s: string): string {
 
 /** A dash value row (RTT / Jitter / Min / Max / …) */
 function dashVal(ns: number, label: string): string {
-  const nsVal = formatNs(ns);
-  const msVal = formatMs(ns);
   const ms = ns / 1e6;
-  const raw = `${label.padEnd(7)}${nsVal} ns  ${msVal} ms`;
-  const painted = `${C.bold(label.padEnd(7))}${C.colorRtt(ms)}${nsVal}${ansi.reset} ns  ${C.colorRtt(ms)}${msVal}${ansi.reset} ms`;
+  const text = formatTime(ns);
+  const raw = `${label.padEnd(7)}  ${text}`;
+  const painted = `${C.bold(label.padEnd(7))}  ${C.colorRtt(ms)}${text}${ansi.reset}`;
   return painted + " ".repeat(W - raw.length);
 }
 
@@ -104,9 +103,9 @@ function dashRating(rttMs: number, jitterMs: number): string {
 /** A speed-test result row */
 function dashSpeedRow(sizeLabel: string, latencyMs: number): string {
   const r = speedRating(latencyMs);
-  const lat = latencyMs.toFixed(3).padStart(7);
-  const raw = `  ${sizeLabel.padEnd(6)}  ${lat} ms  ${r.label}`;
-  const painted = `  ${C.dim(sizeLabel.padEnd(6))}  ${r.color}${lat}${ansi.reset} ms  ${r.color}${r.label}${ansi.reset}`;
+  const text = formatTime(latencyMs * 1e6);
+  const raw = `  ${sizeLabel.padEnd(6)}  ${text}  ${r.label}`;
+  const painted = `  ${C.dim(sizeLabel.padEnd(6))}  ${r.color}${text}${ansi.reset}  ${r.color}${r.label}${ansi.reset}`;
   return painted + " ".repeat(W - raw.length);
 }
 
@@ -319,7 +318,7 @@ function startGuest(): void {
             lastSpeedResults.push({ size: data.size, sizeLabel, latencyMs });
           }
 
-          statusMsg = `Speed test: ${sizeLabel} ${latencyMs.toFixed(3)}ms`;
+          statusMsg = `Speed test: ${sizeLabel} ${formatTime(latencyMs * 1e6)}`;
           render();
           break;
         }
