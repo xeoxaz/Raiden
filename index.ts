@@ -43,6 +43,21 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function sparkline(values: number[], width: number): string {
+  if (values.length < 2 || width < 2) return "";
+  const recent = values.slice(-width);
+  const lo = Math.min(...recent);
+  const hi = Math.max(...recent);
+  const range = hi - lo || 1;
+  const chars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+  return recent.map(v => {
+    const i = Math.min(7, Math.floor(((v - lo) / range) * 7));
+    const ms = v / 1e6;
+    const c = ms < 5 ? ansi.green : ms < 20 ? ansi.yellow : ansi.red;
+    return `${c}${chars[i]}${ansi.reset}`;
+  }).join("");
+}
+
 // ── Quality Ratings ────────────────────────────────────────
 
 function rttRating(ms: number): Rating {
@@ -116,6 +131,7 @@ function showDashboard(
   pongs: number, pings: number,
   elapsed: number,
   speedResults: { size: number; sizeLabel: string; latencyMs: number }[],
+  rttHistory: number[],
   extra?: string,
 ): void {
   const out: string[] = [];
@@ -141,6 +157,14 @@ function showDashboard(
                                    ["Median", stats.median], ["P95", stats.p95], ["P99", stats.p99],
                                    ["StdDev", stats.stddev]] as [string, number][]) {
         out.push(border("│") + " " + dashVal(val, label) + " " + border("│"));
+      }
+      if (rttHistory.length >= 4) {
+        const trendW = W - 2 - 10;
+        const spark = sparkline(rttHistory, trendW);
+        const sparkLen = Math.min(rttHistory.length, trendW);
+        const raw = `${"Trend".padEnd(7)}  ${" ".repeat(sparkLen)}`;
+        const painted = `${C.bold("Trend".padEnd(7))}  ${spark}`;
+        out.push(border("│") + " " + painted + " ".repeat(W - 2 - raw.length) + " " + border("│"));
       }
     }
   }
@@ -224,7 +248,7 @@ function startGuest(): void {
 
   function render(extra?: string): void {
     const stats = calcStats(rttSamples);
-    showDashboard(config.url, lastRtt, stats, totalPongsReceived, totalPingsSent, elapsedSecs(), lastSpeedResults, extra ?? (statusMsg || undefined));
+    showDashboard(config.url, lastRtt, stats, totalPongsReceived, totalPingsSent, elapsedSecs(), lastSpeedResults, rttSamples, extra ?? (statusMsg || undefined));
   }
 
   function handleSigint(): void {
